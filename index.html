@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Job Quick Capture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f2ef;
+    --surface: #ffffff;
+    --surface2: #f9fafb;
+    --border: #e0e0e0;
+    --border-focus: #0a66c2;
+    --accent: #0a66c2;
+    --accent-hover: #004182;
+    --accent-light: #e8f0f9;
+    --text: #000000;
+    --text-secondary: #38434f;
+    --muted: #666666;
+    --error: #cc1016;
+    --success: #057642;
+    --success-light: #f0faf5;
+    --tag-bg: #e8f0f9;
+    --tag-text: #0a66c2;
+    --shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-sm: 0 0 0 1px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 36px 32px 40px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: var(--shadow);
+  }
+
+  .header { margin-bottom: 28px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tag-text);
+    background: var(--tag-bg);
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin-bottom: 14px;
+  }
+
+  .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 5px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle { font-size: 14px; color: var(--muted); }
+
+  /* CONFIG */
+  .config-section {
+    background: #f9fafb;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .config-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .config-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .config-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+  }
+
+  .config-status {
+    font-size: 11px;
+    margin-top: 7px;
+    min-height: 16px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .config-status.ok { color: var(--success); }
+  .config-status.err { color: var(--error); }
+  .config-status.info { color: var(--muted); }
+
+  .instr-toggle {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .instructions {
+    display: none;
+    margin-top: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .instructions strong { color: var(--text); }
+  .instructions a { color: var(--accent); }
+
+  .code-block {
+    background: #1e2a3b;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 10.5px;
+    color: #94d4f5;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 10px 0 6px;
+    line-height: 1.6;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+  }
+
+  .copy-hint { font-size: 9px; color: var(--muted); text-align: right; margin-bottom: 2px; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0 20px;
+  }
+
+  /* FIELDS */
+  .field { margin-bottom: 18px; }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .col-badge {
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+
+  .req {
+    color: var(--error);
+    margin-left: auto;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .text-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .text-input::placeholder { color: var(--muted); }
+
+  .text-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 1px var(--border-focus);
+  }
+
+  .text-input.error {
+    border-color: var(--error);
+    box-shadow: 0 0 0 1px var(--error);
+  }
+
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--success-light);
+    border: 1.5px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
+  .status-label { font-size: 13px; color: #15803d; font-weight: 500; }
+  .auto-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  /* BUTTON */
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    transition: background 0.15s, transform 0.1s, opacity 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  .btn-submit:active:not(:disabled) { transform: scale(0.99); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 260px;
+    max-width: 90vw;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { border-color: #bbf7d0; background: var(--success-light); color: #15803d; }
+  .toast.error { border-color: #fecaca; background: #fef2f2; color: var(--error); }
+
+  #submitFrame { display: none; }
+
+  @media (max-width: 520px) {
+    .card { padding: 24px 18px 28px; border-radius: 8px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <div class="tag">CS Job Search · 2026</div>
+    <h1>Quick <span>Capture</span></h1>
+    <p class="subtitle">Instantly add a prospect to your pipeline</p>
+  </div>
+
+  <div class="config-section">
+    <div class="config-title">⚙ Apps Script URL</div>
+    <input class="config-input" type="url" id="scriptUrl"
+      placeholder="https://script.google.com/macros/s/…/exec"
+      oninput="saveUrl()" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="config-status info" id="configStatus">Paste your deployed Web App URL above</div>
+    <a class="instr-toggle" onclick="toggleInstr(event)" href="#">▸ Setup instructions (one time only)</a>
+    <div class="instructions" id="instructions">
+      <strong>Step 1:</strong> Open your <a href="https://docs.google.com/spreadsheets/d/1sJasS-wG6ut2nWdw5278-f44AoHKgK_-3cAO8ZylDuQ/edit" target="_blank">spreadsheet</a> → <strong>Extensions → Apps Script</strong><br>
+      <strong>Step 2:</strong> Delete all code. Paste the script below. Press <strong>Ctrl+S</strong><br>
+      <strong>Step 3:</strong> <strong>Deploy → New deployment</strong> → Type = <strong>Web app</strong><br>
+      <strong>Step 4:</strong> Execute as = <strong>Me</strong> · Access = <strong>Anyone</strong> → Deploy<br>
+      <strong>Step 5:</strong> Copy the Web App URL → paste above<br><br>
+      <strong style="color:var(--accent);">Apps Script — click to copy:</strong>
+      <div class="copy-hint">↓ click to copy</div>
+      <div class="code-block" id="scriptCode" onclick="copyScript()">function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Companies");
+    var params = e.parameter;
+    var lastRow = sheet.getLastRow() + 1;
+
+    sheet.getRange(lastRow, 1).setValue(params.company  || "");
+    sheet.getRange(lastRow, 5).setValue("00 - Not started");
+    sheet.getRange(lastRow, 13).setValue(params.role     || "");
+    sheet.getRange(lastRow, 33).setValue(params.linkedin || "");
+
+    return ContentService
+      .createTextOutput(JSON.stringify({success:true, row:lastRow}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({success:false, error:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({status:"ok"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field">
+    <label>Company <span class="col-badge">Col A</span><span class="req">*</span></label>
+    <input class="text-input" type="text" id="company"
+      placeholder="e.g. Autodesk, Pigment, Vanta…" autocomplete="organization" autocorrect="off">
+  </div>
+
+  <div class="field">
+    <label>Role <span class="col-badge">Col M</span><span class="req">*</span></label>
+    <input class="text-input" type="text" id="role"
+      placeholder="e.g. VP Customer Success, EMEA" autocomplete="off" autocorrect="off">
+  </div>
+
+  <div class="field">
+    <label>LinkedIn Jobs Link <span class="col-badge">Col AG</span></label>
+    <input class="text-input" type="url" id="linkedin"
+      placeholder="https://www.linkedin.com/jobs/view/…"
+      autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <div class="field-hint">Optional — paste the full LinkedIn Jobs URL</div>
+  </div>
+
+  <div class="field">
+    <label>Status <span class="col-badge">Col E</span></label>
+    <div class="status-row">
+      <span class="status-dot"></span>
+      <span class="status-label">00 - Not started</span>
+      <span class="auto-badge">auto-set</span>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+    <span class="spinner" id="spinner"></span>
+    <span id="btnText">Add to Pipeline →</span>
+  </button>
+</div>
+
+<iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
+<form id="nativeForm" method="POST" target="submitFrame" style="display:none;">
+  <input type="hidden" name="company"  id="f_company">
+  <input type="hidden" name="role"     id="f_role">
+  <input type="hidden" name="linkedin" id="f_linkedin">
+</form>
+
+<div class="toast" id="toast">
+  <span id="toastIcon" style="font-size:16px;"></span>
+  <span id="toastMsg" style="flex:1;"></span>
+</div>
+
+<script>
+  const URL_KEY = 'job_capture_url_v3';
+  let pendingCompany = '';
+  let submitTimer = null;
+
+  (function(){
+    try {
+      const saved = localStorage.getItem(URL_KEY);
+      if (saved) {
+        document.getElementById('scriptUrl').value = saved;
+        document.getElementById('nativeForm').action = saved;
+        setStatus('✓ URL loaded and ready', 'ok');
+      }
+    } catch(e) {}
+  })();
+
+  function saveUrl() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    try { if (url) localStorage.setItem(URL_KEY, url); } catch(e) {}
+    document.getElementById('nativeForm').action = url;
+    setStatus(url ? 'URL saved' : 'Paste your Web App URL above', 'info');
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('configStatus');
+    el.textContent = msg;
+    el.className = 'config-status ' + type;
+  }
+
+  function toggleInstr(e) {
+    e.preventDefault();
+    const el = document.getElementById('instructions');
+    const open = el.style.display === 'block';
+    el.style.display = open ? 'none' : 'block';
+    e.target.textContent = (open ? '▸' : '▾') + ' Setup instructions (one time only)';
+  }
+
+  function copyScript() {
+    const raw = document.getElementById('scriptCode').innerText;
+    navigator.clipboard.writeText(raw).then(() => {
+      showToast('Script copied to clipboard!', 'success');
+    }).catch(() => {
+      const r = document.createRange();
+      r.selectNodeContents(document.getElementById('scriptCode'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(r);
+      showToast('Selected — press Ctrl+C / ⌘C to copy', 'success');
+    });
+  }
+
+  window.addEventListener('message', function(e) {
+    clearTimeout(submitTimer);
+    setLoading(false);
+    if (e.data === 'job_capture_ok') {
+      showToast('✓ ' + pendingCompany + ' added to your pipeline!', 'success');
+      clearFields();
+    } else if (typeof e.data === 'string' && e.data.startsWith('job_capture_err')) {
+      showToast('Script error — check Apps Script logs', 'error');
+    }
+  });
+
+  function submitForm() {
+    const scriptUrl = document.getElementById('scriptUrl').value.trim();
+    const company   = document.getElementById('company').value.trim();
+    const role      = document.getElementById('role').value.trim();
+    const linkedin  = document.getElementById('linkedin').value.trim();
+
+    let valid = true;
+    ['company','role'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add('error'); valid = false; }
+      else el.classList.remove('error');
+    });
+
+    if (!scriptUrl) { setStatus('⚠ Add your Apps Script URL above first', 'err'); return; }
+    if (!valid) { showToast('Company and Role are required', 'error'); return; }
+
+    document.getElementById('f_company').value  = company;
+    document.getElementById('f_role').value     = role;
+    document.getElementById('f_linkedin').value = linkedin;
+    document.getElementById('nativeForm').action = scriptUrl;
+
+    pendingCompany = company;
+    setLoading(true);
+    document.getElementById('nativeForm').submit();
+
+    submitTimer = setTimeout(() => {
+      setLoading(false);
+      showToast('✓ Submitted — check your sheet to confirm ' + company + ' was added', 'success');
+      clearFields();
+    }, 7000);
+  }
+
+  function clearFields() {
+    ['company','role','linkedin'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('company').focus();
+  }
+
+  function setLoading(on) {
+    document.getElementById('submitBtn').disabled = on;
+    document.getElementById('spinner').style.display = on ? 'block' : 'none';
+    document.getElementById('btnText').textContent = on ? 'Adding…' : 'Add to Pipeline →';
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitForm();
+  });
+
+  ['company','role','linkedin'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id).classList.remove('error');
+    });
+  });
+</script>
+</body>
+</html>
