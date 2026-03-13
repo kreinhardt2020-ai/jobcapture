@@ -419,6 +419,14 @@ function doGet(e) {
   </div>
 
   <div class="field">
+    <label>Company Careers Link <span class="col-badge">Col AF</span></label>
+    <input class="text-input" type="url" id="careers"
+      placeholder="https://company.com/careers/job-title…"
+      autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <div class="field-hint">Optional — link to the job on the company's own website</div>
+  </div>
+
+  <div class="field">
     <label>Status <span class="col-badge">Col E</span></label>
     <div class="status-row">
       <span class="status-dot"></span>
@@ -438,6 +446,7 @@ function doGet(e) {
   <input type="hidden" name="company"  id="f_company">
   <input type="hidden" name="role"     id="f_role">
   <input type="hidden" name="linkedin" id="f_linkedin">
+  <input type="hidden" name="careers"  id="f_careers">
 </form>
 
 <div class="toast" id="toast">
@@ -511,6 +520,7 @@ function doGet(e) {
     const company   = document.getElementById('company').value.trim();
     const role      = document.getElementById('role').value.trim();
     const linkedin  = document.getElementById('linkedin').value.trim();
+    const careers   = document.getElementById('careers').value.trim();
 
     let valid = true;
     ['company','role'].forEach(id => {
@@ -525,6 +535,7 @@ function doGet(e) {
     document.getElementById('f_company').value  = company;
     document.getElementById('f_role').value     = role;
     document.getElementById('f_linkedin').value = linkedin;
+    document.getElementById('f_careers').value  = careers;
     document.getElementById('nativeForm').action = scriptUrl;
 
     pendingCompany = company;
@@ -539,7 +550,7 @@ function doGet(e) {
   }
 
   function clearFields() {
-    ['company','role','linkedin'].forEach(id => document.getElementById(id).value = '');
+    ['company','role','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('company').focus();
   }
 
@@ -561,7 +572,7 @@ function doGet(e) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitForm();
   });
 
-  ['company','role','linkedin'].forEach(id => {
+  ['company','role','linkedin','careers'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
       document.getElementById(id).classList.remove('error');
     });
