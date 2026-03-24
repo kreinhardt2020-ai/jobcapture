@@ -90,44 +90,12 @@
     background: #f9fafb;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
-    padding: 16px;
+    padding: 12px 16px;
     margin-bottom: 24px;
-  }
-
-  .config-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .config-input {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 12px;
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    -webkit-appearance: none;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .config-input:focus {
-    border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
   }
 
   .config-status {
     font-size: 11px;
-    margin-top: 7px;
-    min-height: 16px;
     line-height: 1.5;
     display: flex;
     align-items: center;
@@ -137,47 +105,6 @@
   .config-status.ok { color: var(--success); }
   .config-status.err { color: var(--error); }
   .config-status.info { color: var(--muted); }
-
-  .instr-toggle {
-    font-size: 12px;
-    color: var(--accent);
-    cursor: pointer;
-    display: inline-block;
-    margin-top: 10px;
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .instructions {
-    display: none;
-    margin-top: 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.9;
-  }
-
-  .instructions strong { color: var(--text); }
-  .instructions a { color: var(--accent); }
-
-  .code-block {
-    background: #1e2a3b;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 10.5px;
-    color: #94d4f5;
-    white-space: pre;
-    overflow-x: auto;
-    margin: 10px 0 6px;
-    line-height: 1.6;
-    cursor: pointer;
-    font-family: 'Courier New', monospace;
-  }
-
-  .copy-hint { font-size: 9px; color: var(--muted); text-align: right; margin-bottom: 2px; }
 
   /* DIVIDER */
   .divider {
@@ -352,48 +279,7 @@
   </div>
 
   <div class="config-section">
-    <div class="config-title">⚙ Apps Script URL</div>
-    <input class="config-input" type="url" id="scriptUrl"
-      placeholder="https://script.google.com/macros/s/…/exec"
-      oninput="saveUrl()" autocomplete="off" autocorrect="off" spellcheck="false">
-    <div class="config-status info" id="configStatus">Paste your deployed Web App URL above</div>
-    <a class="instr-toggle" onclick="toggleInstr(event)" href="#">▸ Setup instructions (one time only)</a>
-    <div class="instructions" id="instructions">
-      <strong>Step 1:</strong> Open your <a href="https://docs.google.com/spreadsheets/d/1sJasS-wG6ut2nWdw5278-f44AoHKgK_-3cAO8ZylDuQ/edit" target="_blank">spreadsheet</a> → <strong>Extensions → Apps Script</strong><br>
-      <strong>Step 2:</strong> Delete all code. Paste the script below. Press <strong>Ctrl+S</strong><br>
-      <strong>Step 3:</strong> <strong>Deploy → New deployment</strong> → Type = <strong>Web app</strong><br>
-      <strong>Step 4:</strong> Execute as = <strong>Me</strong> · Access = <strong>Anyone</strong> → Deploy<br>
-      <strong>Step 5:</strong> Copy the Web App URL → paste above<br><br>
-      <strong style="color:var(--accent);">Apps Script — click to copy:</strong>
-      <div class="copy-hint">↓ click to copy</div>
-      <div class="code-block" id="scriptCode" onclick="copyScript()">function doPost(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("Companies");
-    var params = e.parameter;
-    var lastRow = sheet.getLastRow() + 1;
-
-    sheet.getRange(lastRow, 1).setValue(params.company  || "");
-    sheet.getRange(lastRow, 5).setValue("00 - Not started");
-    sheet.getRange(lastRow, 13).setValue(params.role     || "");
-    sheet.getRange(lastRow, 33).setValue(params.linkedin || "");
-
-    return ContentService
-      .createTextOutput(JSON.stringify({success:true, row:lastRow}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({success:false, error:err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  return ContentService
-    .createTextOutput(JSON.stringify({status:"ok"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</div>
-    </div>
+    <div class="config-status ok" id="configStatus">✓ Connected to pipeline</div>
   </div>
 
   <div class="divider"></div>
@@ -442,7 +328,8 @@ function doGet(e) {
 </div>
 
 <iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
-<form id="nativeForm" method="POST" target="submitFrame" style="display:none;">
+<form id="nativeForm" method="POST" target="submitFrame" style="display:none;"
+  action="https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec">
   <input type="hidden" name="company"  id="f_company">
   <input type="hidden" name="role"     id="f_role">
   <input type="hidden" name="linkedin" id="f_linkedin">
@@ -455,68 +342,11 @@ function doGet(e) {
 </div>
 
 <script>
-  const URL_KEY = 'job_capture_url_v3';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec';
   let pendingCompany = '';
   let submitTimer = null;
 
-  (function(){
-    try {
-      const saved = localStorage.getItem(URL_KEY);
-      if (saved) {
-        document.getElementById('scriptUrl').value = saved;
-        document.getElementById('nativeForm').action = saved;
-        setStatus('✓ URL loaded and ready', 'ok');
-      }
-    } catch(e) {}
-  })();
-
-  function saveUrl() {
-    const url = document.getElementById('scriptUrl').value.trim();
-    try { if (url) localStorage.setItem(URL_KEY, url); } catch(e) {}
-    document.getElementById('nativeForm').action = url;
-    setStatus(url ? 'URL saved' : 'Paste your Web App URL above', 'info');
-  }
-
-  function setStatus(msg, type) {
-    const el = document.getElementById('configStatus');
-    el.textContent = msg;
-    el.className = 'config-status ' + type;
-  }
-
-  function toggleInstr(e) {
-    e.preventDefault();
-    const el = document.getElementById('instructions');
-    const open = el.style.display === 'block';
-    el.style.display = open ? 'none' : 'block';
-    e.target.textContent = (open ? '▸' : '▾') + ' Setup instructions (one time only)';
-  }
-
-  function copyScript() {
-    const raw = document.getElementById('scriptCode').innerText;
-    navigator.clipboard.writeText(raw).then(() => {
-      showToast('Script copied to clipboard!', 'success');
-    }).catch(() => {
-      const r = document.createRange();
-      r.selectNodeContents(document.getElementById('scriptCode'));
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(r);
-      showToast('Selected — press Ctrl+C / ⌘C to copy', 'success');
-    });
-  }
-
-  window.addEventListener('message', function(e) {
-    clearTimeout(submitTimer);
-    setLoading(false);
-    if (e.data === 'job_capture_ok') {
-      showToast('✓ ' + pendingCompany + ' added to your pipeline!', 'success');
-      clearFields();
-    } else if (typeof e.data === 'string' && e.data.startsWith('job_capture_err')) {
-      showToast('Script error — check Apps Script logs', 'error');
-    }
-  });
-
   function submitForm() {
-    const scriptUrl = document.getElementById('scriptUrl').value.trim();
     const company   = document.getElementById('company').value.trim();
     const role      = document.getElementById('role').value.trim();
     const linkedin  = document.getElementById('linkedin').value.trim();
@@ -529,14 +359,12 @@ function doGet(e) {
       else el.classList.remove('error');
     });
 
-    if (!scriptUrl) { setStatus('⚠ Add your Apps Script URL above first', 'err'); return; }
     if (!valid) { showToast('Company and Role are required', 'error'); return; }
 
     document.getElementById('f_company').value  = company;
     document.getElementById('f_role').value     = role;
     document.getElementById('f_linkedin').value = linkedin;
     document.getElementById('f_careers').value  = careers;
-    document.getElementById('nativeForm').action = scriptUrl;
 
     pendingCompany = company;
     setLoading(true);
@@ -544,7 +372,7 @@ function doGet(e) {
 
     submitTimer = setTimeout(() => {
       setLoading(false);
-      showToast('✓ Submitted — check your sheet to confirm ' + company + ' was added', 'success');
+      showToast('✓ ' + company + ' added to your pipeline!', 'success');
       clearFields();
     }, 7000);
   }
