@@ -85,7 +85,6 @@
 
   .subtitle { font-size: 14px; color: var(--muted); }
 
-  /* CONFIG */
   .config-section {
     background: #f9fafb;
     border: 1px solid #e0e0e0;
@@ -104,16 +103,13 @@
 
   .config-status.ok { color: var(--success); }
   .config-status.err { color: var(--error); }
-  .config-status.info { color: var(--muted); }
 
-  /* DIVIDER */
   .divider {
     height: 1px;
     background: var(--border);
     margin: 4px 0 20px;
   }
 
-  /* FIELDS */
   .field { margin-bottom: 18px; }
 
   label {
@@ -197,7 +193,6 @@
     padding: 2px 7px;
   }
 
-  /* BUTTON */
   .btn-submit {
     width: 100%;
     padding: 14px;
@@ -215,10 +210,7 @@
     letter-spacing: 0.01em;
   }
 
-  .btn-submit:hover:not(:disabled) {
-    background: var(--accent-hover);
-  }
-
+  .btn-submit:hover:not(:disabled) { background: var(--accent-hover); }
   .btn-submit:active:not(:disabled) { transform: scale(0.99); }
   .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -233,7 +225,6 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* TOAST */
   .toast {
     position: fixed;
     bottom: 28px;
@@ -260,8 +251,6 @@
   .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   .toast.success { border-color: #bbf7d0; background: var(--success-light); color: #15803d; }
   .toast.error { border-color: #fecaca; background: #fef2f2; color: var(--error); }
-
-  #submitFrame { display: none; }
 
   @media (max-width: 520px) {
     .card { padding: 24px 18px 28px; border-radius: 8px; }
@@ -327,15 +316,6 @@
   </button>
 </div>
 
-<iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
-<form id="nativeForm" method="POST" target="submitFrame" style="display:none;"
-  action="https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec">
-  <input type="hidden" name="company"  id="f_company">
-  <input type="hidden" name="role"     id="f_role">
-  <input type="hidden" name="linkedin" id="f_linkedin">
-  <input type="hidden" name="careers"  id="f_careers">
-</form>
-
 <div class="toast" id="toast">
   <span id="toastIcon" style="font-size:16px;"></span>
   <span id="toastMsg" style="flex:1;"></span>
@@ -343,14 +323,12 @@
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec';
-  let pendingCompany = '';
-  let submitTimer = null;
 
-  function submitForm() {
-    const company   = document.getElementById('company').value.trim();
-    const role      = document.getElementById('role').value.trim();
-    const linkedin  = document.getElementById('linkedin').value.trim();
-    const careers   = document.getElementById('careers').value.trim();
+  async function submitForm() {
+    const company  = document.getElementById('company').value.trim();
+    const role     = document.getElementById('role').value.trim();
+    const linkedin = document.getElementById('linkedin').value.trim();
+    const careers  = document.getElementById('careers').value.trim();
 
     let valid = true;
     ['company','role'].forEach(id => {
@@ -361,20 +339,30 @@
 
     if (!valid) { showToast('Company and Role are required', 'error'); return; }
 
-    document.getElementById('f_company').value  = company;
-    document.getElementById('f_role').value     = role;
-    document.getElementById('f_linkedin').value = linkedin;
-    document.getElementById('f_careers').value  = careers;
-
-    pendingCompany = company;
     setLoading(true);
-    document.getElementById('nativeForm').submit();
 
-    submitTimer = setTimeout(() => {
+    try {
+      const params = new URLSearchParams();
+      params.append('company', company);
+      params.append('role', role);
+      params.append('linkedin', linkedin);
+      params.append('careers', careers);
+
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      });
+
       setLoading(false);
       showToast('✓ ' + company + ' added to your pipeline!', 'success');
       clearFields();
-    }, 7000);
+    } catch (err) {
+      setLoading(false);
+      showToast('Network error — check connection and try again', 'error');
+      console.error('Submit error:', err);
+    }
   }
 
   function clearFields() {
