@@ -324,14 +324,27 @@
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec';
 
-  async function submitForm() {
+  // On page load, check if we're returning from a successful submission
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    if (success) {
+      // Clean the URL so refreshing doesn't re-show the toast
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(function() {
+        showToast('✓ ' + decodeURIComponent(success) + ' added to your pipeline!', 'success');
+      }, 300);
+    }
+  })();
+
+  function submitForm() {
     const company  = document.getElementById('company').value.trim();
     const role     = document.getElementById('role').value.trim();
     const linkedin = document.getElementById('linkedin').value.trim();
     const careers  = document.getElementById('careers').value.trim();
 
     let valid = true;
-    ['company','role'].forEach(id => {
+    ['company','role'].forEach(function(id) {
       const el = document.getElementById(id);
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
       else el.classList.remove('error');
@@ -339,34 +352,22 @@
 
     if (!valid) { showToast('Company and Role are required', 'error'); return; }
 
-    setLoading(true);
+    // Build the GET URL with parameters
+    const params = new URLSearchParams();
+    params.append('company', company);
+    params.append('role', role);
+    if (linkedin) params.append('linkedin', linkedin);
+    if (careers) params.append('careers', careers);
 
-    try {
-      const params = new URLSearchParams();
-      params.append('company', company);
-      params.append('role', role);
-      params.append('linkedin', linkedin);
-      params.append('careers', careers);
-
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString()
-      });
-
-      setLoading(false);
-      showToast('✓ ' + company + ' added to your pipeline!', 'success');
-      clearFields();
-    } catch (err) {
-      setLoading(false);
-      showToast('Network error — check connection and try again', 'error');
-      console.error('Submit error:', err);
-    }
+    // Navigate the whole page to the script URL
+    // The script will write the data and redirect back here with ?success=CompanyName
+    window.location.href = SCRIPT_URL + '?' + params.toString();
   }
 
   function clearFields() {
-    ['company','role','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
+    ['company','role','linkedin','careers'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
     document.getElementById('company').focus();
   }
 
@@ -377,19 +378,19 @@
   }
 
   function showToast(msg, type) {
-    const t = document.getElementById('toast');
+    var t = document.getElementById('toast');
     document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
     document.getElementById('toastMsg').textContent = msg;
     t.className = 'toast ' + type + ' show';
-    setTimeout(() => t.classList.remove('show'), 4500);
+    setTimeout(function() { t.classList.remove('show'); }, 4500);
   }
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitForm();
   });
 
-  ['company','role','linkedin','careers'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
+  ['company','role','linkedin','careers'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
       document.getElementById(id).classList.remove('error');
     });
   });
