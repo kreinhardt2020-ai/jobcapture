@@ -125,6 +125,13 @@
     box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
   }
 
+  .config-input[readonly] { background: var(--surface2); color: var(--muted); cursor: default; }
+  .config-input-row { display: flex; gap: 8px; align-items: center; }
+  .config-input-row .config-input { flex: 1; width: auto; }
+  .edit-btn { flex-shrink: 0; padding: 7px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap; }
+  .edit-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+  .edit-btn.saving { color: var(--success); border-color: #bbf7d0; background: var(--success-light); }
+
   .config-status {
     font-size: 11px;
     margin-top: 7px;
@@ -354,9 +361,13 @@
 
   <div class="config-section">
     <div class="config-title">⚙ Apps Script URL</div>
-    <input class="config-input" type="url" id="scriptUrl"
-      placeholder="https://script.google.com/macros/s/…/exec"
-      oninput="saveUrl()" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="config-input-row">
+      <input class="config-input" type="url" id="scriptUrl"
+        placeholder="https://script.google.com/macros/s/…/exec"
+        oninput="saveUrl()" autocomplete="off" autocorrect="off" spellcheck="false"
+        readonly>
+      <button class="edit-btn" id="editBtn" onclick="toggleEdit(event)">Edit</button>
+    </div>
     <div class="config-status info" id="configStatus">Paste your deployed Web App URL above</div>
     <a class="instr-toggle" onclick="toggleInstr(event)" href="#">▸ Setup instructions (one time only)</a>
     <div class="instructions" id="instructions">
@@ -407,7 +418,7 @@ function doGet(e) {
   </div>
 
   <div class="field">
-    <label>Role <span class="col-badge">Col K</span><span class="req">*</span></label>
+    <label>Role <span class="col-badge">Col L</span><span class="req">*</span></label>
     <input class="text-input" type="text" id="role"
       placeholder="e.g. VP Customer Success, EMEA" autocomplete="off" autocorrect="off">
   </div>
@@ -465,12 +476,34 @@ function doGet(e) {
     try {
       const saved = localStorage.getItem(URL_KEY);
       if (saved) {
-        document.getElementById('scriptUrl').value = saved;
+        const el = document.getElementById('scriptUrl');
+        el.value = saved;
+        el.readOnly = true;
         document.getElementById('nativeForm').action = saved;
-        setStatus('✓ Connected — paste a new URL above to update', 'ok');
+        setStatus('✓ Connected to pipeline', 'ok');
       }
     } catch(e) {}
   })();
+
+  function toggleEdit(e) {
+    e.preventDefault();
+    const input = document.getElementById('scriptUrl');
+    const btn = document.getElementById('editBtn');
+    if (input.readOnly) {
+      input.readOnly = false;
+      input.focus();
+      input.select();
+      btn.textContent = 'Save';
+      btn.classList.remove('saving');
+      setStatus('Paste your new Apps Script URL above', 'info');
+    } else {
+      input.readOnly = true;
+      saveUrl();
+      btn.textContent = 'Edit';
+      btn.classList.add('saving');
+      setTimeout(() => btn.classList.remove('saving'), 2000);
+    }
+  }
 
   function saveUrl() {
     const url = document.getElementById('scriptUrl').value.trim();
