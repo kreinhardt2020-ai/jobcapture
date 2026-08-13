@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,16 +86,49 @@
 
   .subtitle { font-size: 14px; color: var(--muted); }
 
+  /* CONFIG */
   .config-section {
     background: #f9fafb;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
-    padding: 12px 16px;
+    padding: 16px;
     margin-bottom: 24px;
+  }
+
+  .config-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .config-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .config-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
   }
 
   .config-status {
     font-size: 11px;
+    margin-top: 7px;
+    min-height: 16px;
     line-height: 1.5;
     display: flex;
     align-items: center;
@@ -103,13 +137,57 @@
 
   .config-status.ok { color: var(--success); }
   .config-status.err { color: var(--error); }
+  .config-status.info { color: var(--muted); }
 
+  .instr-toggle {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .instructions {
+    display: none;
+    margin-top: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .instructions strong { color: var(--text); }
+  .instructions a { color: var(--accent); }
+
+  .code-block {
+    background: #1e2a3b;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 10.5px;
+    color: #94d4f5;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 10px 0 6px;
+    line-height: 1.6;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+  }
+
+  .copy-hint { font-size: 9px; color: var(--muted); text-align: right; margin-bottom: 2px; }
+
+  /* DIVIDER */
   .divider {
     height: 1px;
     background: var(--border);
     margin: 4px 0 20px;
   }
 
+  /* FIELDS */
   .field { margin-bottom: 18px; }
 
   label {
@@ -193,6 +271,7 @@
     padding: 2px 7px;
   }
 
+  /* BUTTON */
   .btn-submit {
     width: 100%;
     padding: 14px;
@@ -210,7 +289,10 @@
     letter-spacing: 0.01em;
   }
 
-  .btn-submit:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-submit:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
   .btn-submit:active:not(:disabled) { transform: scale(0.99); }
   .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -225,6 +307,7 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* TOAST */
   .toast {
     position: fixed;
     bottom: 28px;
@@ -252,6 +335,8 @@
   .toast.success { border-color: #bbf7d0; background: var(--success-light); color: #15803d; }
   .toast.error { border-color: #fecaca; background: #fef2f2; color: var(--error); }
 
+  #submitFrame { display: none; }
+
   @media (max-width: 520px) {
     .card { padding: 24px 18px 28px; border-radius: 8px; }
     h1 { font-size: 22px; }
@@ -268,7 +353,49 @@
   </div>
 
   <div class="config-section">
-    <div class="config-status ok" id="configStatus">✓ Connected to pipeline</div>
+    <div class="config-title">⚙ Apps Script URL</div>
+    <input class="config-input" type="url" id="scriptUrl"
+      placeholder="https://script.google.com/macros/s/…/exec"
+      oninput="saveUrl()" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="config-status info" id="configStatus">Paste your deployed Web App URL above</div>
+    <a class="instr-toggle" onclick="toggleInstr(event)" href="#">▸ Setup instructions (one time only)</a>
+    <div class="instructions" id="instructions">
+      <strong>Step 1:</strong> Open your <a href="https://docs.google.com/spreadsheets/d/1sJasS-wG6ut2nWdw5278-f44AoHKgK_-3cAO8ZylDuQ/edit" target="_blank">spreadsheet</a> → <strong>Extensions → Apps Script</strong><br>
+      <strong>Step 2:</strong> Delete all code. Paste the script below. Press <strong>Ctrl+S</strong><br>
+      <strong>Step 3:</strong> <strong>Deploy → New deployment</strong> → Type = <strong>Web app</strong><br>
+      <strong>Step 4:</strong> Execute as = <strong>Me</strong> · Access = <strong>Anyone</strong> → Deploy<br>
+      <strong>Step 5:</strong> Copy the Web App URL → paste above<br><br>
+      <strong style="color:var(--accent);">Apps Script — click to copy:</strong>
+      <div class="copy-hint">↓ click to copy</div>
+      <div class="code-block" id="scriptCode" onclick="copyScript()">function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Companies");
+    var params = e.parameter;
+    var lastRow = sheet.getLastRow() + 1;
+
+    sheet.getRange(lastRow, 1).setValue(params.company  || "");  // Col A
+    sheet.getRange(lastRow, 4).setValue("00 - Not started");     // Col D
+    sheet.getRange(lastRow, 11).setValue(params.role    || "");  // Col K
+    sheet.getRange(lastRow, 31).setValue(params.careers || "");  // Col AE
+    sheet.getRange(lastRow, 32).setValue(params.linkedin|| "");  // Col AF
+
+    return ContentService
+      .createTextOutput(JSON.stringify({success:true, row:lastRow}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({success:false, error:err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({status:"ok"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -280,13 +407,13 @@
   </div>
 
   <div class="field">
-    <label>Role <span class="col-badge">Col M</span><span class="req">*</span></label>
+    <label>Role <span class="col-badge">Col K</span><span class="req">*</span></label>
     <input class="text-input" type="text" id="role"
       placeholder="e.g. VP Customer Success, EMEA" autocomplete="off" autocorrect="off">
   </div>
 
   <div class="field">
-    <label>LinkedIn Jobs Link <span class="col-badge">Col AG</span></label>
+    <label>LinkedIn Jobs Link <span class="col-badge">Col AF</span></label>
     <input class="text-input" type="url" id="linkedin"
       placeholder="https://www.linkedin.com/jobs/view/…"
       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
@@ -294,7 +421,7 @@
   </div>
 
   <div class="field">
-    <label>Company Careers Link <span class="col-badge">Col AF</span></label>
+    <label>Company Careers Link <span class="col-badge">Col AE</span></label>
     <input class="text-input" type="url" id="careers"
       placeholder="https://company.com/careers/job-title…"
       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
@@ -302,7 +429,7 @@
   </div>
 
   <div class="field">
-    <label>Status <span class="col-badge">Col E</span></label>
+    <label>Status <span class="col-badge">Col D</span></label>
     <div class="status-row">
       <span class="status-dot"></span>
       <span class="status-label">00 - Not started</span>
@@ -316,58 +443,116 @@
   </button>
 </div>
 
+<iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
+<form id="nativeForm" method="POST" target="submitFrame" style="display:none;">
+  <input type="hidden" name="company"  id="f_company">
+  <input type="hidden" name="role"     id="f_role">
+  <input type="hidden" name="linkedin" id="f_linkedin">
+  <input type="hidden" name="careers"  id="f_careers">
+</form>
+
 <div class="toast" id="toast">
   <span id="toastIcon" style="font-size:16px;"></span>
   <span id="toastMsg" style="flex:1;"></span>
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztyOv9tYLnVE9R0QrP4m-0ibGow9am0vHHbKmX1Qm4ICHMZ4ZZfqu1tv7rClXlekfZXw/exec';
+  const URL_KEY = 'job_capture_url_v3';
+  let pendingCompany = '';
+  let submitTimer = null;
 
-  // On page load, check if we're returning from a successful submission
-  (function() {
-    const params = new URLSearchParams(window.location.search);
-    const success = params.get('success');
-    if (success) {
-      // Clean the URL so refreshing doesn't re-show the toast
-      window.history.replaceState({}, '', window.location.pathname);
-      setTimeout(function() {
-        showToast('✓ ' + decodeURIComponent(success) + ' added to your pipeline!', 'success');
-      }, 300);
-    }
+  (function(){
+    try {
+      const saved = localStorage.getItem(URL_KEY);
+      if (saved) {
+        document.getElementById('scriptUrl').value = saved;
+        document.getElementById('nativeForm').action = saved;
+        setStatus('✓ Connected — paste a new URL above to update', 'ok');
+      }
+    } catch(e) {}
   })();
 
+  function saveUrl() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    try { if (url) localStorage.setItem(URL_KEY, url); } catch(e) {}
+    document.getElementById('nativeForm').action = url;
+    setStatus(url ? 'URL saved' : 'Paste your Web App URL above', 'info');
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('configStatus');
+    el.textContent = msg;
+    el.className = 'config-status ' + type;
+  }
+
+  function toggleInstr(e) {
+    e.preventDefault();
+    const el = document.getElementById('instructions');
+    const open = el.style.display === 'block';
+    el.style.display = open ? 'none' : 'block';
+    e.target.textContent = (open ? '▸' : '▾') + ' Setup instructions (one time only)';
+  }
+
+  function copyScript() {
+    const raw = document.getElementById('scriptCode').innerText;
+    navigator.clipboard.writeText(raw).then(() => {
+      showToast('Script copied to clipboard!', 'success');
+    }).catch(() => {
+      const r = document.createRange();
+      r.selectNodeContents(document.getElementById('scriptCode'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(r);
+      showToast('Selected — press Ctrl+C / ⌘C to copy', 'success');
+    });
+  }
+
+  window.addEventListener('message', function(e) {
+    clearTimeout(submitTimer);
+    setLoading(false);
+    if (e.data === 'job_capture_ok') {
+      showToast('✓ ' + pendingCompany + ' added to your pipeline!', 'success');
+      clearFields();
+    } else if (typeof e.data === 'string' && e.data.startsWith('job_capture_err')) {
+      showToast('Script error — check Apps Script logs', 'error');
+    }
+  });
+
   function submitForm() {
-    const company  = document.getElementById('company').value.trim();
-    const role     = document.getElementById('role').value.trim();
-    const linkedin = document.getElementById('linkedin').value.trim();
-    const careers  = document.getElementById('careers').value.trim();
+    const scriptUrl = document.getElementById('scriptUrl').value.trim();
+    const company   = document.getElementById('company').value.trim();
+    const role      = document.getElementById('role').value.trim();
+    const linkedin  = document.getElementById('linkedin').value.trim();
+    const careers   = document.getElementById('careers').value.trim();
 
     let valid = true;
-    ['company','role'].forEach(function(id) {
+    ['company','role'].forEach(id => {
       const el = document.getElementById(id);
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
       else el.classList.remove('error');
     });
 
+    if (!scriptUrl) { setStatus('⚠ Add your Apps Script URL above first', 'err'); return; }
     if (!valid) { showToast('Company and Role are required', 'error'); return; }
 
-    // Build the GET URL with parameters
-    const params = new URLSearchParams();
-    params.append('company', company);
-    params.append('role', role);
-    if (linkedin) params.append('linkedin', linkedin);
-    if (careers) params.append('careers', careers);
+    document.getElementById('f_company').value  = company;
+    document.getElementById('f_role').value     = role;
+    document.getElementById('f_linkedin').value = linkedin;
+    document.getElementById('f_careers').value  = careers;
+    document.getElementById('nativeForm').action = scriptUrl;
 
-    // Navigate the whole page to the script URL
-    // The script will write the data and redirect back here with ?success=CompanyName
-    window.location.href = SCRIPT_URL + '?' + params.toString();
+    pendingCompany = company;
+    setLoading(true);
+    document.getElementById('nativeForm').submit();
+
+    submitTimer = setTimeout(() => {
+      setLoading(false);
+      showToast('✓ Submitted — check your sheet to confirm ' + company + ' was added', 'success');
+      clearFields();
+    }, 7000);
   }
 
   function clearFields() {
-    ['company','role','linkedin','careers'].forEach(function(id) {
-      document.getElementById(id).value = '';
-    });
+    ['company','role','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('company').focus();
   }
 
@@ -378,19 +563,19 @@
   }
 
   function showToast(msg, type) {
-    var t = document.getElementById('toast');
+    const t = document.getElementById('toast');
     document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
     document.getElementById('toastMsg').textContent = msg;
     t.className = 'toast ' + type + ' show';
-    setTimeout(function() { t.classList.remove('show'); }, 4500);
+    setTimeout(() => t.classList.remove('show'), 4500);
   }
 
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitForm();
   });
 
-  ['company','role','linkedin','careers'].forEach(function(id) {
-    document.getElementById(id).addEventListener('input', function() {
+  ['company','role','linkedin','careers'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
       document.getElementById(id).classList.remove('error');
     });
   });
