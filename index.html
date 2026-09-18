@@ -239,6 +239,7 @@
     -webkit-appearance: none;
   }
 
+  .select-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
   .text-input::placeholder { color: var(--muted); }
 
   .text-input:focus {
@@ -418,9 +419,34 @@ function doGet(e) {
   </div>
 
   <div class="field">
-    <label>Role <span class="col-badge">Col L</span><span class="req">*</span></label>
+    <label>Role <span class="col-badge">Col L</span></label>
     <input class="text-input" type="text" id="role"
       placeholder="e.g. VP Customer Success, EMEA" autocomplete="off" autocorrect="off">
+    <div class="field-hint">Optional — leave blank if prospecting with no role advertised</div>
+  </div>
+
+  <div class="field">
+    <label>Status <span class="col-badge">Col D</span><span class="req">*</span></label>
+    <select class="text-input select-input" id="status">
+      <option value="00 - Not started">00 - Not started (Job application)</option>
+      <option value="01 - Prospect">01 - Prospect (No role advertised)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Reports into / Hiring Manager <span class="col-badge">Col AA</span></label>
+    <input class="text-input" type="text" id="hiringmanager"
+      placeholder="e.g. Sarah Jones, VP Customer Success"
+      autocomplete="off" autocorrect="off">
+    <div class="field-hint">Optional — name of the person this role reports into</div>
+  </div>
+
+  <div class="field">
+    <label>Company Website <span class="col-badge">Col AD</span></label>
+    <input class="text-input" type="url" id="website"
+      placeholder="https://company.com"
+      autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <div class="field-hint">Optional — company homepage</div>
   </div>
 
   <div class="field">
@@ -439,15 +465,6 @@ function doGet(e) {
     <div class="field-hint">Optional — link to the job on the company's own website</div>
   </div>
 
-  <div class="field">
-    <label>Status <span class="col-badge">Col D</span></label>
-    <div class="status-row">
-      <span class="status-dot"></span>
-      <span class="status-label">00 - Not started</span>
-      <span class="auto-badge">auto-set</span>
-    </div>
-  </div>
-
   <button class="btn-submit" id="submitBtn" onclick="submitForm()">
     <span class="spinner" id="spinner"></span>
     <span id="btnText">Add to Pipeline →</span>
@@ -456,10 +473,13 @@ function doGet(e) {
 
 <iframe id="submitFrame" name="submitFrame" style="display:none;"></iframe>
 <form id="nativeForm" method="POST" target="submitFrame" style="display:none;">
-  <input type="hidden" name="company"  id="f_company">
-  <input type="hidden" name="role"     id="f_role">
-  <input type="hidden" name="linkedin" id="f_linkedin">
-  <input type="hidden" name="careers"  id="f_careers">
+  <input type="hidden" name="company"       id="f_company">
+  <input type="hidden" name="role"          id="f_role">
+  <input type="hidden" name="status"        id="f_status">
+  <input type="hidden" name="hiringmanager" id="f_hiringmanager">
+  <input type="hidden" name="website"       id="f_website">
+  <input type="hidden" name="linkedin"      id="f_linkedin">
+  <input type="hidden" name="careers"       id="f_careers">
 </form>
 
 <div class="toast" id="toast">
@@ -551,27 +571,33 @@ function doGet(e) {
   });
 
   function submitForm() {
-    const scriptUrl = document.getElementById('scriptUrl').value.trim();
-    const company   = document.getElementById('company').value.trim();
-    const role      = document.getElementById('role').value.trim();
-    const linkedin  = document.getElementById('linkedin').value.trim();
-    const careers   = document.getElementById('careers').value.trim();
+    const scriptUrl     = document.getElementById('scriptUrl').value.trim();
+    const company       = document.getElementById('company').value.trim();
+    const role          = document.getElementById('role').value.trim();
+    const status        = document.getElementById('status').value;
+    const hiringmanager = document.getElementById('hiringmanager').value.trim();
+    const website       = document.getElementById('website').value.trim();
+    const linkedin      = document.getElementById('linkedin').value.trim();
+    const careers       = document.getElementById('careers').value.trim();
 
     let valid = true;
-    ['company','role'].forEach(id => {
+    ['company'].forEach(id => {
       const el = document.getElementById(id);
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
       else el.classList.remove('error');
     });
 
     if (!scriptUrl) { setStatus('⚠ Add your Apps Script URL above first', 'err'); return; }
-    if (!valid) { showToast('Company and Role are required', 'error'); return; }
+    if (!valid) { showToast('Company is required', 'error'); return; }
 
-    document.getElementById('f_company').value  = company;
-    document.getElementById('f_role').value     = role;
-    document.getElementById('f_linkedin').value = linkedin;
-    document.getElementById('f_careers').value  = careers;
-    document.getElementById('nativeForm').action = scriptUrl;
+    document.getElementById('f_company').value       = company;
+    document.getElementById('f_role').value          = role;
+    document.getElementById('f_status').value        = status;
+    document.getElementById('f_hiringmanager').value = hiringmanager;
+    document.getElementById('f_website').value       = website;
+    document.getElementById('f_linkedin').value      = linkedin;
+    document.getElementById('f_careers').value       = careers;
+    document.getElementById('nativeForm').action     = scriptUrl;
 
     pendingCompany = company;
     setLoading(true);
@@ -585,7 +611,8 @@ function doGet(e) {
   }
 
   function clearFields() {
-    ['company','role','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
+    ['company','role','hiringmanager','website','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('status').value = '00 - Not started';
     document.getElementById('company').focus();
   }
 
@@ -607,7 +634,7 @@ function doGet(e) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitForm();
   });
 
-  ['company','role','linkedin','careers'].forEach(id => {
+  ['company','role','hiringmanager','website','linkedin','careers'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
       document.getElementById(id).classList.remove('error');
     });
