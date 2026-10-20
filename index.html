@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -465,6 +464,26 @@ function doGet(e) {
     <div class="field-hint">Optional — link to the job on the company's own website</div>
   </div>
 
+  <div class="field">
+    <label>CV Template Used <span class="col-badge">Col F</span></label>
+    <select class="text-input select-input" id="cvtemplate">
+      <option value="">— select a CV template —</option>
+      <option value="Master_CV_CS.docx">Master_CV_CS.docx</option>
+      <option value="Master_CV_ERP.docx">Master_CV_ERP.docx</option>
+      <option value="Master_CV_Generic.docx">Master_CV_Generic.docx</option>
+    </select>
+    <div class="field-hint">Optional — which CV template you used for this application</div>
+  </div>
+
+  <div class="field">
+    <label>Job Advert Text <span class="col-badge">Col AI</span></label>
+    <textarea class="text-input" id="jobadvert" rows="6"
+      placeholder="Paste the full job advert text here…"
+      autocomplete="off" autocorrect="off" spellcheck="false"
+      style="resize:vertical; min-height:120px; font-size:13px; line-height:1.5;"></textarea>
+    <div class="field-hint">Optional — paste the full job description so you have it on record</div>
+  </div>
+
   <button class="btn-submit" id="submitBtn" onclick="submitForm()">
     <span class="spinner" id="spinner"></span>
     <span id="btnText">Add to Pipeline →</span>
@@ -480,6 +499,8 @@ function doGet(e) {
   <input type="hidden" name="website"       id="f_website">
   <input type="hidden" name="linkedin"      id="f_linkedin">
   <input type="hidden" name="careers"       id="f_careers">
+  <input type="hidden" name="cvtemplate"    id="f_cvtemplate">
+  <input type="hidden" name="jobadvert"     id="f_jobadvert">
 </form>
 
 <div class="toast" id="toast">
@@ -579,6 +600,8 @@ function doGet(e) {
     const website       = document.getElementById('website').value.trim();
     const linkedin      = document.getElementById('linkedin').value.trim();
     const careers       = document.getElementById('careers').value.trim();
+    const cvtemplate    = document.getElementById('cvtemplate').value;
+    const jobadvert     = document.getElementById('jobadvert').value.trim();
 
     let valid = true;
     ['company'].forEach(id => {
@@ -597,6 +620,8 @@ function doGet(e) {
     document.getElementById('f_website').value       = website;
     document.getElementById('f_linkedin').value      = linkedin;
     document.getElementById('f_careers').value       = careers;
+    document.getElementById('f_cvtemplate').value    = cvtemplate;
+    document.getElementById('f_jobadvert').value     = jobadvert;
     document.getElementById('nativeForm').action     = scriptUrl;
 
     pendingCompany = company;
@@ -611,8 +636,9 @@ function doGet(e) {
   }
 
   function clearFields() {
-    ['company','role','hiringmanager','website','linkedin','careers'].forEach(id => document.getElementById(id).value = '');
+    ['company','role','hiringmanager','website','linkedin','careers','jobadvert'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('status').value = '00 - Not started';
+    document.getElementById('cvtemplate').value = '';
     document.getElementById('company').focus();
   }
 
